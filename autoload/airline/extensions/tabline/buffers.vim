@@ -50,7 +50,7 @@ endfunction
 function! airline#extensions#tabline#buffers#get()
   call <sid>map_keys()
   let cur = bufnr('%')
-  if cur == s:current_bufnr
+  if cur == s:current_bufnr && !g:airline_force_tabline_update
     if !g:airline_detect_modified || getbufvar(cur, '&modified') == s:current_modified
       return s:current_tabline
     endif

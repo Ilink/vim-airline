@@ -11,6 +11,7 @@ if s:taboo
   let g:taboo_tabline = 0
 endif
 
+let g:airline_force_tabline_update = 0
 let s:ctrlspace = get(g:, 'CtrlSpaceLoaded', 0)
 
 function! airline#extensions#tabline#init(ext)
@@ -57,6 +58,10 @@ function! s:update_tabline()
     return
   endif
   doautocmd User BufMRUChange
+endfunction
+
+function! airline#extensions#tabline#update_tabline2()
+  call s:update_tabline()
 endfunction
 
 function! airline#extensions#tabline#load_theme(palette)
