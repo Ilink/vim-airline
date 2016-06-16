@@ -89,15 +89,10 @@ function! airline#extensions#tabline#buflist#move_cur_buf_dir(isForward)
     " TODO session integration
     " call airline#extensions#tabline#buflist#updateSessionOrder()
     " re-render the tabline since stuff got moved around
-    " call airline#extensions#tabline#buflist#update(0)
     call airline#extensions#tabline#buflist#invalidate()
-    let detect_modified = g:airline_detect_modified 
-    let g:airline_detect_modified = 0
+    " TODO provide a better mechanism than this, it's pretty broken
     let g:airline_force_tabline_update = 1
     set tabline=%!airline#extensions#tabline#get()
-		" doautocmd User BufMRUChange
-    call airline#extensions#tabline#update_tabline2()  
-    let g:airline_detect_modified = detect_modified
 endfunction
 
 function! airline#extensions#tabline#buflist#move_cur_buf_forward()
