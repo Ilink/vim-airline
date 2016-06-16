@@ -8,6 +8,16 @@ function! airline#extensions#tabline#buflist#invalidate()
   unlet! s:current_buffer_list
 endfunction
 
+" if !exists('g:ordered_buffs')
+"     let g:ordered_buffs = []
+" endif
+
+
+
+" if we dont have anything in ordered, simply copy
+" else lookup each buffer in the new list and find its spot in the ordered list
+
+
 function! airline#extensions#tabline#buflist#list()
   if exists('s:current_buffer_list')
     return s:current_buffer_list
@@ -36,7 +46,29 @@ function! airline#extensions#tabline#buflist#list()
     endif
   endfor
 
-  let s:current_buffer_list = buffers
+  if !exists('g:ordered_buffs')
+    let g:ordered_buffs = buffers 
+  else
+    let append_list = []
+    " make sure we have everything represented in the ordered buffer
+    for nr in buffers
+      let buf_found = 0
+      for ordered_nr in g:ordered_buffs
+        if nr == ordered_nr
+          let buf_found = 1
+          break
+        endif
+      endfor
+
+      if !buf_found
+        call add(append_list, nr)
+      endif
+
+    endfor
+  endif
+
+  " let s:current_buffer_list = buffers
+  let s:current_buffer_list = g:ordered_buffs
   return buffers
 endfunction
 
