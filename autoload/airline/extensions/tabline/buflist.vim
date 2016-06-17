@@ -113,8 +113,69 @@ com! -bar AirlineNextBuffer call airline#extensions#tabline#buflist#next_buffer_
 com! -bar AirlinePrevBuffer call airline#extensions#tabline#buflist#prev_buffer_ordered()  
 
 
-" if we dont have anything in ordered, simply copy
-" else lookup each buffer in the new list and find its spot in the ordered list
+function! s:sync_ordered_buffers(buffers)
+  if !exists('s:ordered_buffs') || (exists('s:ordered_buffs') && len(s:ordered_buffs) == 0)
+    if exists("g:airline_session_order") && len(g:airline_session_order) > 0
+      echom "copy from saved session order"
+      let s:ordered_buffs = copy(g:airline_session_order)
+    else
+      echom "copy from buffers to ordered buffers"
+      let s:ordered_buffs = copy(a:buffers)
+    endif
+  else
+    let append_list = []
+    let found_list = []
+    " make sure we have everything represented in the ordered buffer
+
+    " TODO handle situation when entry is in ordered but not unordered
+    "      This happens when a buffer is deleted.
+    for nr in a:buffers
+      let buf_found = 0
+      for ordered_nr in s:ordered_buffs
+        if nr == ordered_nr
+          call add(found_list, nr)
+          let buf_found = 1
+          break
+        endif
+      endfor
+
+      if !buf_found
+        call add(append_list, nr)
+      endif
+
+    endfor
+
+    let del_list = []
+    let i = 0
+    for ordered_nr in s:ordered_buffs  
+      let buf_found = 0
+      for nr in a:buffers 
+        if nr == ordered_nr
+          let buf_found = 1
+          break
+        endif
+      endfor
+
+      if !buf_found
+        call add(del_list, i)
+      endif
+      let i += 1
+    endfor
+    
+    
+    for idx in del_list
+      call remove(s:ordered_buffs, idx)
+    endfor
+
+    for nr in append_list
+      echom "appending missing buffer: " . nr
+      call add(s:ordered_buffs, nr)
+    endfor
+
+  endif
+
+  return s:ordered_buffs
+endfunction
 
 
 function! airline#extensions#tabline#buflist#list()
@@ -149,68 +210,7 @@ function! airline#extensions#tabline#buflist#list()
     endif
   endfor
 
-  if !exists('s:ordered_buffs')
-    echom "copy from buffers to ordered buffers"
-    let s:ordered_buffs = copy(buffers)
-  elseif len(s:ordered_buffs) == 0
-    echom "copy from buffers to ordered buffers"
-    let s:ordered_buffs = copy(buffers)
-  else
-    let append_list = []
-    let found_list = []
-    " make sure we have everything represented in the ordered buffer
-
-    " TODO handle situation when entry is in ordered but not unordered
-    "      This happens when a buffer is deleted.
-    for nr in buffers
-      let buf_found = 0
-      for ordered_nr in s:ordered_buffs
-        if nr == ordered_nr
-          call add(found_list, nr)
-          let buf_found = 1
-          break
-        endif
-      endfor
-
-      if !buf_found
-        call add(append_list, nr)
-      endif
-
-    endfor
-
-    let del_list = []
-    let i = 0
-    for ordered_nr in s:ordered_buffs  
-      let buf_found = 0
-      for nr in buffers 
-        if nr == ordered_nr
-          let buf_found = 1
-          break
-        endif
-      endfor
-
-      if !buf_found
-        call add(del_list, i)
-      endif
-      let i += 1
-    endfor
-    
-    
-    for idx in del_list
-      call remove(s:ordered_buffs, idx)
-    endfor
-
-    for nr in append_list
-      echom "appending missing buffer: " . nr
-      call add(s:ordered_buffs, nr)
-    endfor
-
-
-  endif
-
-  if len(s:ordered_buffs) > 0
-    echom "first in order: " . s:ordered_buffs[0]
-  endif
+  let s:ordered_buffs = s:sync_ordered_buffers(buffers)
 
   " let s:current_buffer_list = buffers
   let s:current_buffer_list = copy(s:ordered_buffs)
