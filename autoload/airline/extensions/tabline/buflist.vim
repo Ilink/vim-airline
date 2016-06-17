@@ -77,7 +77,6 @@ endfunction
 " Buffer re-ordering
 """"""""""""""""""""""""""""""""""
 function! airline#extensions#tabline#buflist#move_cur_buf_dir(isForward)
-		echom "move buffer"
   " let s:ordered_buffs = s:ordered_buffs
     let curBufIdx = airline#extensions#tabline#buflist#get_curr_buf_idx()
     let tgtBufIdx = airline#extensions#tabline#buflist#get_dir_buffer_idx_ordered(a:isForward) 
@@ -121,7 +120,6 @@ function! s:update_session_order()
 endfunction
 
 function! s:from_session_order(session_buffers)
-  echom "from session order"
   let buffers = []
   for sessionFname in a:session_buffers 
       let localBuf = bufnr(expand(sessionFname))
@@ -133,16 +131,14 @@ endfunction
 function! s:sync_ordered_buffers(buffers)
   if !exists('s:ordered_buffs') || (exists('s:ordered_buffs') && len(s:ordered_buffs) == 0)
     if exists("g:airline_session_order") && len(g:airline_session_order) > 0
-      echom "copy from saved session order"
-      " let s:ordered_buffs = copy(g:airline_session_order)
       let s:ordered_buffs = s:from_session_order(g:airline_session_order)
     else
-      echom "copy from buffers to ordered buffers"
+      " No session order available, starting fresh
       let s:ordered_buffs = copy(a:buffers)
     endif
   else
     let append_list = []
-    let found_list = []
+    let in_cur_buffers = {}
     " make sure we have everything represented in the ordered buffer
 
     " TODO this can probably be faster
@@ -150,7 +146,8 @@ function! s:sync_ordered_buffers(buffers)
       let buf_found = 0
       for ordered_nr in s:ordered_buffs
         if nr == ordered_nr
-          call add(found_list, nr)
+          " call add(found_list, nr)
+          let in_cur_buffers[nr] = 1
           let buf_found = 1
           break
         endif
@@ -166,13 +163,14 @@ function! s:sync_ordered_buffers(buffers)
     let s:ordered_buffs = []
     let i = 0
     for ordered_nr in ordered_copy 
-      let buf_found = 0
-      for nr in a:buffers 
-        if nr == ordered_nr
-          let buf_found = 1
-          break
-        endif
-      endfor
+      let buf_found = has_key(in_cur_buffers, ordered_nr)
+      " let buf_found = 0
+      " for nr in a:buffers 
+      "   if nr == ordered_nr
+      "     let buf_found = 1
+      "     break
+      "   endif
+      " endfor
 
       if buf_found
         call add(s:ordered_buffs, ordered_nr)
@@ -181,7 +179,7 @@ function! s:sync_ordered_buffers(buffers)
     endfor
     
     for nr in append_list
-      echom "appending missing buffer: " . nr
+      " echom 'appending missing buffer: ' . nr
       call add(s:ordered_buffs, nr)
     endfor
 
@@ -193,11 +191,9 @@ endfunction
 
 
 function! airline#extensions#tabline#buflist#list()
-  echom "buflist list"
+  " let start = reltime()
+   
   if exists('s:current_buffer_list')
-    if len(s:current_buffer_list) > 0
-      echom "first in order: " . s:current_buffer_list[0]
-    endif
     return s:current_buffer_list
   elseif exists('g:airline_session_buffers')
     let s:ordered_buffers = s:from_session_order(g:airline_session_buffers)
@@ -228,9 +224,16 @@ function! airline#extensions#tabline#buflist#list()
     endif
   endfor
 
+
   call s:sync_ordered_buffers(buffers)
   let s:current_buffer_list = s:ordered_buffs  
-  " let s:current_buffer_list = copy(s:ordered_buffs)
+
+  " let s:current_buffer_list = buffers
+  
+
+  " let seconds = reltimefloat(reltime(start))
+  " echom printf("buflist list took %f", seconds)
+
   return s:current_buffer_list
   " return copy(s:ordered_buffs) 
 endfunction
