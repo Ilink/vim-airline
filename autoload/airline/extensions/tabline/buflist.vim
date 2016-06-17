@@ -112,12 +112,30 @@ com! -bar AirlineMoveCurBufForward call airline#extensions#tabline#buflist#move_
 com! -bar AirlineNextBuffer call airline#extensions#tabline#buflist#next_buffer_ordered()  
 com! -bar AirlinePrevBuffer call airline#extensions#tabline#buflist#prev_buffer_ordered()  
 
+function! s:update_session_order()
+    let g:airline_session_order = []
+    for bufnum in s:ordered_buffs  
+        let fname = expand(bufname(bufnum))
+        let g:airline_session_order += [fname]
+    endfor   
+endfunction
+
+function! s:from_session_order(session_buffers)
+  echom "from session order"
+  let buffers = []
+  for sessionFname in a:session_buffers 
+      let localBuf = bufnr(expand(sessionFname))
+      let buffers += [localBuf] 
+  endfor
+  return buffers
+endfunction
 
 function! s:sync_ordered_buffers(buffers)
   if !exists('s:ordered_buffs') || (exists('s:ordered_buffs') && len(s:ordered_buffs) == 0)
     if exists("g:airline_session_order") && len(g:airline_session_order) > 0
       echom "copy from saved session order"
-      let s:ordered_buffs = copy(g:airline_session_order)
+      " let s:ordered_buffs = copy(g:airline_session_order)
+      let s:ordered_buffs = s:from_session_order(g:airline_session_order)
     else
       echom "copy from buffers to ordered buffers"
       let s:ordered_buffs = copy(a:buffers)
@@ -174,6 +192,7 @@ function! s:sync_ordered_buffers(buffers)
 
   endif
 
+  call s:update_session_order()
   return s:ordered_buffs
 endfunction
 
@@ -184,6 +203,10 @@ function! airline#extensions#tabline#buflist#list()
     if len(s:current_buffer_list) > 0
       echom "first in order: " . s:current_buffer_list[0]
     endif
+    return s:current_buffer_list
+  elseif exists('g:airline_session_buffers')
+    let s:ordered_buffers = s:from_session_order(g:airline_session_buffers)
+    let s:current_buffer_list = s:ordered_buffers
     return s:current_buffer_list
   endif
 
