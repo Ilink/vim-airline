@@ -162,9 +162,10 @@ function! s:sync_ordered_buffers(buffers)
 
     endfor
 
-    let del_list = []
+    let ordered_copy = copy(s:ordered_buffs)
+    let s:ordered_buffs = []
     let i = 0
-    for ordered_nr in s:ordered_buffs  
+    for ordered_nr in ordered_copy 
       let buf_found = 0
       for nr in a:buffers 
         if nr == ordered_nr
@@ -173,17 +174,12 @@ function! s:sync_ordered_buffers(buffers)
         endif
       endfor
 
-      if !buf_found
-        call add(del_list, i)
+      if buf_found
+        call add(s:ordered_buffs, ordered_nr)
       endif
       let i += 1
     endfor
     
-    
-    for idx in del_list
-      call remove(s:ordered_buffs, idx)
-    endfor
-
     for nr in append_list
       echom "appending missing buffer: " . nr
       call add(s:ordered_buffs, nr)
@@ -192,7 +188,7 @@ function! s:sync_ordered_buffers(buffers)
   endif
 
   call s:update_session_order()
-  return s:ordered_buffs
+  " return s:ordered_buffs
 endfunction
 
 
@@ -232,11 +228,10 @@ function! airline#extensions#tabline#buflist#list()
     endif
   endfor
 
-  let s:ordered_buffs = s:sync_ordered_buffers(buffers)
-
-  " TODO i am reasonably certain the copy isnt neccesary
-  " let s:current_buffer_list = buffers
-  let s:current_buffer_list = copy(s:ordered_buffs)
-  return copy(s:ordered_buffs) 
+  call s:sync_ordered_buffers(buffers)
+  let s:current_buffer_list = s:ordered_buffs  
+  " let s:current_buffer_list = copy(s:ordered_buffs)
+  return s:current_buffer_list
+  " return copy(s:ordered_buffs) 
 endfunction
 
