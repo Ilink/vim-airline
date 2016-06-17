@@ -104,6 +104,14 @@ function! airline#extensions#tabline#buflist#move_cur_buf_backward()
 endfunction
 
 
+" Commands
+""""""""""""""""""""""""""""""""""
+com! -bar AirlineMoveCurBufBackward call airline#extensions#tabline#buflist#move_cur_buf_backward()   
+com! -bar AirlineMoveCurBufForward call airline#extensions#tabline#buflist#move_cur_buf_forward()  
+
+com! -bar AirlineNextBuffer call airline#extensions#tabline#buflist#next_buffer_ordered()  
+com! -bar AirlinePrevBuffer call airline#extensions#tabline#buflist#prev_buffer_ordered()  
+
 
 " if we dont have anything in ordered, simply copy
 " else lookup each buffer in the new list and find its spot in the ordered list
@@ -149,6 +157,7 @@ function! airline#extensions#tabline#buflist#list()
     let s:ordered_buffs = copy(buffers)
   else
     let append_list = []
+    let found_list = []
     " make sure we have everything represented in the ordered buffer
 
     " TODO handle situation when entry is in ordered but not unordered
@@ -157,6 +166,7 @@ function! airline#extensions#tabline#buflist#list()
       let buf_found = 0
       for ordered_nr in s:ordered_buffs
         if nr == ordered_nr
+          call add(found_list, nr)
           let buf_found = 1
           break
         endif
@@ -168,10 +178,33 @@ function! airline#extensions#tabline#buflist#list()
 
     endfor
 
+    let del_list = []
+    let i = 0
+    for ordered_nr in s:ordered_buffs  
+      let buf_found = 0
+      for nr in buffers 
+        if nr == ordered_nr
+          let buf_found = 1
+          break
+        endif
+      endfor
+
+      if !buf_found
+        call add(del_list, i)
+      endif
+      let i += 1
+    endfor
+    
+    
+    for idx in del_list
+      call remove(s:ordered_buffs, idx)
+    endfor
+
     for nr in append_list
       echom "appending missing buffer: " . nr
       call add(s:ordered_buffs, nr)
     endfor
+
 
   endif
 
