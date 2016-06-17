@@ -145,8 +145,7 @@ function! s:sync_ordered_buffers(buffers)
     let found_list = []
     " make sure we have everything represented in the ordered buffer
 
-    " TODO handle situation when entry is in ordered but not unordered
-    "      This happens when a buffer is deleted.
+    " TODO this can probably be faster
     for nr in a:buffers
       let buf_found = 0
       for ordered_nr in s:ordered_buffs
@@ -235,6 +234,7 @@ function! airline#extensions#tabline#buflist#list()
 
   let s:ordered_buffs = s:sync_ordered_buffers(buffers)
 
+  " TODO i am reasonably certain the copy isnt neccesary
   " let s:current_buffer_list = buffers
   let s:current_buffer_list = copy(s:ordered_buffs)
   return copy(s:ordered_buffs) 
