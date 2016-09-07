@@ -10,7 +10,7 @@ endfunction
 
 function! airline#extensions#tabline#buflist#get_curr_buf_idx()
   let curBuf = winbufnr(0)
-    " let s:ordered_buffs = s:ordered_buffs
+    " let s:ordred_buffs = s:ordered_buffs
 
     " TODO: might be worth refactoring this to use a dict lookup instead
     " would only really matter if there were a lot of buffers open
@@ -54,6 +54,19 @@ function! airline#extensions#tabline#buflist#get_dir_buffer_ordered(isForward)
   return tgtOrdered
 endfunction
 
+function! airline#extensions#tabline#buflist#get_last_buffer_ordered()
+  let tgtOrdered = s:ordered_buffs[len(s:ordered_buffs)-1]
+  return tgtOrdered
+endfunction
+
+function! airline#extensions#tabline#buflist#get_buffer_num_ordered(num)
+  if(a:num >= len(s:ordered_buffs)) 
+    return len(s:ordered_buffs)-1
+  endif
+  let tgtOrdered = s:ordered_buffs[a:num]
+  return tgtOrdered
+endfunction
+
 
 " Ordered Buffer Navigation
 """"""""""""""""""""""""""""""""""
@@ -73,6 +86,13 @@ function! airline#extensions#tabline#buflist#prev_buffer_ordered()
     execute ":b " . airline#extensions#tabline#buflist#get_prev_buffer_ordered()
 endfunction
 
+function! airline#extensions#tabline#buflist#last_buffer()
+    execute ":b " . airline#extensions#tabline#buflist#get_last_buffer_ordered()
+endfunction
+
+function! airline#extensions#tabline#buflist#goto_buf_num(num)
+    execute ":b " . airline#extensions#tabline#buflist#get_buffer_num_ordered(a:num)
+endfunction
 
 " Buffer re-ordering
 """"""""""""""""""""""""""""""""""
@@ -110,6 +130,18 @@ com! -bar AirlineMoveCurBufForward call airline#extensions#tabline#buflist#move_
 
 com! -bar AirlineNextBuffer call airline#extensions#tabline#buflist#next_buffer_ordered()  
 com! -bar AirlinePrevBuffer call airline#extensions#tabline#buflist#prev_buffer_ordered()  
+
+com! -bar AirlineLastBuffer call airline#extensions#tabline#buflist#last_buffer()  
+com! -bar AirlineGotoOrderedBuffer1 call airline#extensions#tabline#buflist#goto_buf_num(0)  
+com! -bar AirlineGotoOrderedBuffer2 call airline#extensions#tabline#buflist#goto_buf_num(1)  
+com! -bar AirlineGotoOrderedBuffer3 call airline#extensions#tabline#buflist#goto_buf_num(2)  
+com! -bar AirlineGotoOrderedBuffer4 call airline#extensions#tabline#buflist#goto_buf_num(3)  
+com! -bar AirlineGotoOrderedBuffer5 call airline#extensions#tabline#buflist#goto_buf_num(4)  
+com! -bar AirlineGotoOrderedBuffer6 call airline#extensions#tabline#buflist#goto_buf_num(5)  
+com! -bar AirlineGotoOrderedBuffer7 call airline#extensions#tabline#buflist#goto_buf_num(6)  
+com! -bar AirlineGotoOrderedBuffer8 call airline#extensions#tabline#buflist#goto_buf_num(7)  
+com! -bar AirlineGotoOrderedBuffer9 call airline#extensions#tabline#buflist#goto_buf_num(8)  
+
 
 function! s:update_session_order()
     let g:airline_session_order = []
